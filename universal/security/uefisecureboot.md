@@ -130,7 +130,18 @@ This should have created Shim (shimx64.efi) and MokManager (mmx64.efi). Install 
 * `./shim-make.tool install /Volumes/EFI` (macOS)
 * `sudo ./shim-make.tool install /boot/efi` (Linux)
 
-These binaries are still unsigned, so you'll have to sign them with your ISK on the next section. For OpenCore to verify items with Shim's database, `ShimRetainProtocol` must be true in config.plist, and `LauncherPath` should be set to `\EFI\OC\shimx64.efi`. `LauncherOption` should also be [set up](../../multiboot/bootstrap.html).
+These binaries are still unsigned, so you'll have to sign them with your ISK.
+
+**Settings in your config.plist**:
+
+* `UEFI -> Quirks -> ShimRetainProtocol:` `YES`
+  * Required so that OpenCore can verify items with Shim's db
+* `Misc -> Boot -> LauncherPath:` `\EFI\OC\shimx64.efi`
+  * Needed so that OpenCore will launch itself with Shim if it creates a boot entry
+* `Misc -> Boot -> LauncherOption:`:
+  * `Full`: Requires `RequestBootVarRouting` to work
+  * `Short`: May be required for Insyde firmwares
+* `UEFI -> Quirks -> RequestBootVarRouting:` `YES`
 
 ## Signing binaries
 

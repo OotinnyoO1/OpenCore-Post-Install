@@ -34,6 +34,9 @@ The problem is that OpenCore.efi isn't signed by default, so normally under Secu
   * Generate keys
 * sbsigntool
   * Sign binaries
+* [Secure Vault](./vault.md) and [Apple Secure Boot](./applesecureboot.md) set up
+  * Optional, but highly recommended for a fully secure boot process
+  * Vaulting should be done before signing OpenCore, but after signing any Drivers
 
 ## Generating Keys
 
@@ -138,21 +141,25 @@ These binaries are still unsigned, so you'll have to sign them with your ISK.
   * Required so that OpenCore can verify items with Shim's db
 * `Misc -> Boot -> LauncherPath:` `\EFI\OC\shimx64.efi`
   * Needed so that OpenCore will launch itself with Shim if it creates a boot entry
-* `Misc -> Boot -> LauncherOption:`:
-  * `Full`: Requires `RequestBootVarRouting` to work
+* `Misc -> Boot -> LauncherOption:`
+  * `Full`: Creates a boot option for OpenCore
   * `Short`: May be required for Insyde firmwares
 * `UEFI -> Quirks -> RequestBootVarRouting:` `YES`
 
 ## Signing binaries
 
-Now that you have your ISK, you can now begin signing OpenCore and its drivers. Go into the same directory where OpenCore is located (should be `\EFI\OC\`) and sign it
+Now that you have your ISK, you can now begin signing OpenCore and its drivers. Go into your EFI partition where OpenCore is located, and sign all relevant binaries. If you plan to use secure OpenCore vault, do it after signing Drivers, but before signing OpenCore.
 
 ```sh
-# Sign OpenCore with your ISK
-sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenCore.efi OpenCore.efi
 # Sign all Drivers with your ISK
-cd Drivers
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenRuntime.efi OpenRuntime.efi
+sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output HfsPlus.efi HfsPlus.efi
+
+# Setup secure Vault if needed before signing OpenCore
+
+# Sign OpenCore Binaries with your ISK
+sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output BOOTx64.efi BOOTx64.efi
+sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenCore.efi OpenCore.efi
 ...
 ```
 
@@ -173,7 +180,7 @@ This can be really easy or slightly tedious depending on your firmware. Make sur
 
 ### AMI Aptio V
 
-Setting up Secure Boot is much easier on these firmwares, since PK, KEK, and db can be changed easily.
+Setting up Secure Boot is much easier on these firmwares, since PK, KEK, and db can be changed directly in the BIOS setup.
 
 ![](../../images/post-install/security-md/aptio/a7f6482675fc4c5da37337beca5f47d0.png)
 
@@ -201,7 +208,7 @@ Do the same for both KEK and PK. You should be left with this:
 
 ![](../../images/post-install/security-md/aptio/1cbb003f826d44928f83ee5365881da6.png)
 
-There should only be one PK, one KEK, and three keys in db (your ISK, Microsoft's bootloader, and Microsoft's driver CA). Now enable Secure Boot and reboot. If all went well, OpenCore should work just as before.
+There should only be one PK, one KEK, and either one or three keys in db (your ISK, as well as Microsoft's bootloader and Microsoft's driver CA if included). Now enable Secure Boot and reboot. If all went well, OpenCore should work just as before.
 
 ![](../../images/post-install/security-md/aptio/273d345026784de290d92ec2b6684d33.png)
 
@@ -209,7 +216,7 @@ There should only be one PK, one KEK, and three keys in db (your ISK, Microsoft'
 
 Setting up Secure Boot is a little bit harder in these firmwares. The BIOS setup is much more restricted and there's no interface for setting up your secure boot variables. In addition to your keys, you'll also have to add KeyTool to your USB drive. You may be able to find it at `/usr/share/efitools/efi/KeyTool.efi` Rename it to `BOOTx64.efi`, and move it to `/EFI/BOOT/BOOTx64.efi` in your USB drive.
 
-Secure Boot cannot be enabled for some reason if the Supervisor Password is not set, so set it first. Then erase the keys
+Secure Boot cannot be enabled for some reason if the Supervisor Password is not set, so set it first. Then erase the keys. This will put your BIOS in Setup Mode, which will allow you to enroll your own keys using KeyTool.
 
 ![](../../images/post-install/security-md/insydeh2o/9c59591db861481f8df8b84c437632c1.jpg)
 
@@ -223,11 +230,11 @@ Continue to [using KeyTool](#using-keytool)
 
 This firmware is somehow even more locked down. There are only two options, those being to reset to default keys, and to remove all keys. In addition to your keys, you'll also have to add KeyTool to your USB drive. You may be able to find it at `/usr/share/efitools/efi/KeyTool.efi` Rename it to `BOOTx64.efi`, and move it to `/EFI/BOOT/BOOTx64.efi` in your USB drive.
 
-First, select Change to Customized Signatures. This will basically remove all keys.
+First, select Change to Customized Signatures. This will put your BIOS in Setup Mode, which will allow you to enroll your own keys using KeyTool.
 
 ![](../../images/post-install/security-md/phoenix/2aaa04e591004f18b704854f266fef4b.jpg)
 
-Go to the Boot tab, and enable Secure Boot. Add a boot option for KeyTool, so that you can boot into KeyTool
+Go to the Boot tab, and enable Secure Boot. Add a boot option for KeyTool using your USB drive.
 
 ![](../../images/post-install/security-md/phoenix/2eab832348634cef9270a9199c18d0f9.jpg)
 
@@ -243,10 +250,10 @@ Select Edit Keys. You should now see your secure boot variables.
 
 ![](../../images/post-install/security-md/keytool/e8de0f240698400c83946a67a906aa0a.png)
 
-First, select db. Select Replace Keys, then our choose USB device, and then the db.auth file:
+First, select db. Select Replace Keys, then our USB device, and then the db.auth file:
 
 ![](../../images/post-install/security-md/keytool/e06e5f5768484b6ba922d6dcad09cda7.png)
 
-This should enroll your keys into the firmware. We repeat the same first for KEK, and then for PK, then exit to the main menu by double-tapping Esc.
+This should enroll your keys into the firmware. We repeat the same process for both KEK and PK, then exit to the main menu by double-tapping Esc.
 
 If everything went well, OpenCore will now work with UEFI Secure Boot

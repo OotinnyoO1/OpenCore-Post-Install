@@ -68,10 +68,9 @@ If you have Windows installed, you may also (optionally) add Microsoft's keys in
 We need two of Microsoft's keys:
 
 * [Microsoft Windows Production CA 2011](http://go.microsoft.com/fwlink/?LinkID=321192)
-Used to sign Windows boot manager
+  * Used to sign Windows boot manager
 * [Microsoft UEFI driver signing CA](http://go.microsoft.com/fwlink/?LinkId=321194)
-
-Used to sign third-party components, including the Shim bootloader
+  * Used to sign third-party components, including the Shim bootloader
 
 With these two keys, we can now add them to our db.
 

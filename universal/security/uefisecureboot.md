@@ -63,7 +63,7 @@ cert-to-efi-sig-list -g "$(uuidgen)" ISK.pem ISK.esl
 
 ## Adding Microsoft's Keys
 
-If you have Windows installed, you may also (optionally) add Microsoft's keys into our db so that you can boot Windows. If you do not have Windows installed, or do not plan to boot Windows, you can skip to [signing the keys](#signing-keys).
+If you have Windows installed, you may also (optionally) add Microsoft's keys into your db so that you can boot Windows. If you do not have Windows installed, or do not plan to boot Windows, you can skip to [signing the keys](#signing-keys).
 
 We need two of Microsoft's keys:
 
@@ -88,6 +88,7 @@ cat ISK.esl MsWin.esl UEFI.esl > db.esl
 
 ## Signing keys
 
+If you decided not to include Microsoft's keys into your db, you should instead rename ISK.esl to db.esl. This will make it so that only binaries signed by you may be loadable.
 
 ```sh
 # First sign PK with itself

@@ -128,12 +128,14 @@ It should generate a vendor.db and possibly a vendor.dbx file. If a vendor.dbx f
 ./shim-make.tool clean
 ```
 
-This should have created Shim (shimx64.efi) and MokManager (mmx64.efi). Install those to your EFI.
+This should have created Shim (shimx64.efi) and MokManager (mmx64.efi). Install those to your EFI. Adjust the paths if necessary.
+
+* Note: These commands will install Shim into your EFI. If needed, change the paths to your USB.
 
 * `./shim-make.tool install /Volumes/EFI` (macOS)
 * `sudo ./shim-make.tool install /boot/efi` (Linux)
 
-These binaries are still unsigned, so you'll have to sign them with your ISK.
+These binaries are still unsigned, so you'll have to sign them with your ISK later on.
 
 **Settings in your config.plist**:
 
@@ -154,13 +156,13 @@ Now that you have your ISK, you can now begin signing OpenCore and its drivers. 
 # Sign all Drivers with your ISK
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenRuntime.efi OpenRuntime.efi
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output HfsPlus.efi HfsPlus.efi
+...
 
 # Setup secure Vault if needed before signing OpenCore
 
 # Sign OpenCore Binaries with your ISK
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output BOOTx64.efi BOOTx64.efi
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenCore.efi OpenCore.efi
-...
 ```
 
 If you're using a user build of Shim to chainload OpenCore, you should sign that as well with your ISK. It's highly recommended you also add an empty SBAT section to OpenCore.efi using [this script](https://github.com/chenxiaolong/random-scripts/blob/e752bf07bcfb0aa19a9d7dafa139cca74ecca4b7/pe-add-sections.py) so it cannot be revoked by SBAT.

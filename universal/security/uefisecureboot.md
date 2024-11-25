@@ -157,12 +157,6 @@ Now that you have your ISK, you can now begin signing OpenCore and its drivers. 
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenRuntime.efi OpenRuntime.efi
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output HfsPlus.efi HfsPlus.efi
 ...
-
-# Setup secure Vault if needed before signing OpenCore
-
-# Sign OpenCore Binaries with your ISK
-sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output BOOTx64.efi BOOTx64.efi
-sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenCore.efi OpenCore.efi
 ```
 
 If you're using a user build of Shim to chainload OpenCore, you should sign that as well with your ISK. It's highly recommended you also add an empty SBAT section to OpenCore.efi using [this script](https://github.com/chenxiaolong/random-scripts/blob/e752bf07bcfb0aa19a9d7dafa139cca74ecca4b7/pe-add-sections.py) so it cannot be revoked by SBAT.
@@ -174,6 +168,16 @@ python3 pe-add-sections.py -s .sbat <(echo -n) -z .sbat -i OpenCore.efi -o OpenC
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output shimx64.efi shimx64.efi
 # Sign MokManager
 sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output mmx64.efi mmx64.efi
+```
+
+Now, you can finally sign OpenCore.
+
+```sh
+# Setup secure Vault if needed before signing OpenCore
+
+# Sign OpenCore Binaries with your ISK
+sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output BOOTx64.efi BOOTx64.efi
+sbsign --key /path/to/ISK.key --cert /path/to/ISK.pem --output OpenCore.efi OpenCore.efi
 ```
 
 ## Enrolling keys into firmware
